@@ -1,9 +1,13 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module LambdaExpression where
 
 import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.State
+
+import Data.Data
 import Data.Char
 import Data.Hashable
 import Data.Maybe
@@ -12,12 +16,7 @@ import Data.Monoid
 data LambdaExpr = Var { name :: String }
                 | Lam { param :: String, subst :: LambdaExpr }
                 | App { first :: LambdaExpr, second :: LambdaExpr }
-                deriving Eq
-
-instance Plated LambdaExpr where
-    plate f (Lam par s) = Lam par <$> plate f s
-    plate f (App fi se) = App <$> plate f fi <*> plate f se
-    plate f var         = f var
+                deriving (Eq, Data)
 
 instance Show LambdaExpr where
     showsPrec _ (Var name) = showString name
