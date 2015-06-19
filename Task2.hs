@@ -11,5 +11,5 @@ import System.IO
 main = do
     lambda <- liftM parseLambda $ readFile "task2.in"
     hOut <- openFile "task2.out" WriteMode
-    forM_ (setOf (coerced freeVars) lambda) $ hPutStrLn hOut
+    forM_ (setOf (coerced freeVars.name) lambda) $ hPutStrLn hOut
     hClose hOut

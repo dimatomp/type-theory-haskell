@@ -1,22 +1,22 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module LambdaExpression where
 
 import Control.Applicative
 import Control.Lens
 import Control.Monad
-import Control.Monad.Trans.State
+import Control.Monad.State
 
-import Data.Data
-import Data.Char
 import Data.Hashable
 import Data.Maybe
-import Data.Monoid
 
-data LambdaExpr = Var { name :: String }
+import Parser
+
+data LambdaExpr = Var { _name :: String }
                 | Lam { param :: String, subst :: LambdaExpr }
                 | App { first :: LambdaExpr, second :: LambdaExpr }
-                deriving (Eq, Data)
+                deriving Eq
+makeLenses ''LambdaExpr
 
 instance Show LambdaExpr where
     showsPrec _ (Var name) = showString name
@@ -25,20 +25,6 @@ instance Show LambdaExpr where
 
 instance Hashable LambdaExpr where
     hashWithSalt p = hashWithSalt p . show
-
-type Parser = StateT String Maybe
-
-allow :: (Char -> Bool) -> Parser Char
-allow f = StateT $ \str -> uncons str >>= liftM2 (<$) id (_1 $ guard . f)
-
-char :: Char -> Parser ()
-char c = () <$ allow (== c)
-
-lexeme :: Parser String
-lexeme = some $ allow $ liftA2 (||) isAlphaNum (== '\'')
-
-spaced = (many (allow isSpace) >>)
-spacedChar = spaced . char
 
 lambdaExpr :: Parser LambdaExpr
 lambdaExpr = liftM (foldl1 App) $ some $ braces <|> (Var <$> spaced lexeme) <|> parseLam
@@ -49,17 +35,17 @@ lambdaExpr = liftM (foldl1 App) $ some $ braces <|> (Var <$> spaced lexeme) <|> 
 parseLambda :: String -> LambdaExpr
 parseLambda = fst . fromJust . runStateT lambdaExpr
 
-freeVars :: Traversal LambdaExpr (Either String LambdaExpr) String LambdaExpr
+freeVars :: Traversal LambdaExpr (Either String LambdaExpr) LambdaExpr LambdaExpr
 freeVars = filterVars []
     where
-        canBeSubst l res = case res ^? coerced freeVars . filtered (`elem` l) of
+        canBeSubst l res = case res ^? coerced freeVars . name. filtered (`elem` l) of
             Nothing -> Right res
             Just str -> Left str
         filterVars l f (Var name)
             | name `elem` l = pure $ Right $ Var name
-            | otherwise = canBeSubst l <$> f name
+            | otherwise = canBeSubst l <$> f (Var name)
         filterVars l f (Lam par expr) = fmap (Lam par) <$> filterVars (par:l) f expr
         filterVars l f (App fi se) = liftA2 App <$> filterVars l f fi <*> filterVars l f se
 
 lReduce :: String -> LambdaExpr -> LambdaExpr -> Either String LambdaExpr
-lReduce f t = over freeVars $ \s -> if s == f then t else Var s
+lReduce f t = freeVars.filtered((== f).view name) .~ t
