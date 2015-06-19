@@ -14,10 +14,10 @@ data LambdaExpr = Var { name :: String }
                 | App { first :: LambdaExpr, second :: LambdaExpr }
                 deriving Eq
 
-recursively :: Simple Traversal LambdaExpr LambdaExpr
-recursively f (Lam par s) = Lam par <$> recursively f s
-recursively f (App fi se) = App <$> recursively f fi <*> recursively f se
-recursively f var         = f var
+instance Plated LambdaExpr where
+    plate f (Lam par s) = Lam par <$> plate f s
+    plate f (App fi se) = App <$> plate f fi <*> plate f se
+    plate f var         = f var
 
 instance Show LambdaExpr where
     showsPrec _ (Var name) = showString name
@@ -50,20 +50,17 @@ lambdaExpr = liftM (foldl1 App) $ some $ braces <|> (Var <$> spaced lexeme) <|> 
 parseLambda :: String -> LambdaExpr
 parseLambda = fst . fromJust . runStateT lambdaExpr
 
-freeVars :: Traversal LambdaExpr (Maybe LambdaExpr) String LambdaExpr
+freeVars :: Traversal LambdaExpr (Either String LambdaExpr) String LambdaExpr
 freeVars = filterVars []
     where
+        canBeSubst l res = case res ^? coerced freeVars . filtered (`elem` l) of
+            Nothing -> Right res
+            Just str -> Left str
         filterVars l f (Var name)
-            | name `elem` l = pure $ Just $ Var name
-            | otherwise = (liftA2 (<$) id (guard . canBeSubst)) <$> f name
-              where canBeSubst = allOf substVars (`notElem` l)
-        filterVars l f (Lam par expr) = filterVars (par:l) f expr
-        filterVars l f (App fi se) = (liftA2 App) <$> filterVars l f fi <*> filterVars l f se
+            | name `elem` l = pure $ Right $ Var name
+            | otherwise = canBeSubst l <$> f name
+        filterVars l f (Lam par expr) = fmap (Lam par) <$> filterVars (par:l) f expr
+        filterVars l f (App fi se) = liftA2 App <$> filterVars l f fi <*> filterVars l f se
 
--- I still do not know why they have limited the number
--- of parameters in Getting from 5 to 3. It would be so flexible here.
-substVars :: Monoid m => Getting m LambdaExpr String
-substVars = (coerce .) . (freeVars . (coerce .))
-
-lReduce :: String -> LambdaExpr -> LambdaExpr -> Maybe LambdaExpr
+lReduce :: String -> LambdaExpr -> LambdaExpr -> Either String LambdaExpr
 lReduce f t = over freeVars $ \s -> if s == f then t else Var s
