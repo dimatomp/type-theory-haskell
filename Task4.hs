@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
+import Control.Applicative
 import Control.Lens
 import Control.Monad
 
@@ -8,8 +9,6 @@ import Data.Data
 import Data.Data.Lens
 import Data.List
 import Data.Maybe
-
---import Debug.Trace{-trace ("!!!" ++ show n ++ ' ':show m) $ -}
 
 import LambdaExpression hiding (subst)
 
@@ -32,15 +31,15 @@ dFreeVars = apply 0
         apply n f (DApp fi se) = DApp <$> apply n f fi <*> apply n f se
         apply n f (DLam v) = DLam <$> apply (n + 1) f v
 
-subst n (DVar m) sub = if m == n then sub & dFreeVars +~ n else DVar m
-subst n (DApp f s) sub = subst n f sub `DApp` subst n s sub
-subst n (DLam v) sub = DLam $ subst (n + 1) v sub
-
 dbReduce :: DeBrujin -> DeBrujin
 dbReduce (DApp (DLam pat) sub) = subst 1 pat sub & dFreeVars -~ 1 & dbReduce
-dbReduce expr@(DApp f s) = let first = dbReduce f
-                           in if f == first then DApp first $ dbReduce s
-                                            else dbReduce $ DApp first s
+    where
+        subst n (DVar m) sub = if m == n then sub & dFreeVars +~ n else DVar m
+        subst n (DApp f s) sub = subst n f sub `DApp` subst n s sub
+        subst n (DLam v) sub = DLam $ subst (n + 1) v sub
+dbReduce expr@(DApp f s) = case dbReduce f of
+    DLam pat -> dbReduce $ DApp (DLam pat) s
+    first    -> DApp first $ dbReduce s
 dbReduce (DVar n) = DVar n
 dbReduce (DLam v) = DLam $ dbReduce v
 
