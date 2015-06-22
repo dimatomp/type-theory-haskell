@@ -38,7 +38,7 @@ parseLambda = fst . fromJust . runStateT lambdaExpr
 freeVars :: Traversal LambdaExpr (Either String LambdaExpr) LambdaExpr LambdaExpr
 freeVars = filterVars []
     where
-        canBeSubst l res = case res ^? coerced freeVars . name. filtered (`elem` l) of
+        canBeSubst l res = case res ^? coerced freeVars . name . filtered (`elem` l) of
             Nothing -> Right res
             Just str -> Left str
         filterVars l f (Var name)
