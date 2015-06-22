@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 import Control.Lens
 import Control.Monad
@@ -11,11 +11,10 @@ import Data.Maybe
 
 import LambdaExpression
 
-data DeBrujin = DVar { _num :: Int }
-              | DApp { _fst :: DeBrujin, _snd :: DeBrujin }
-              | DLam { _val :: DeBrujin }
+data DeBrujin = DVar { num :: Int }
+              | DApp { fst :: DeBrujin, snd :: DeBrujin }
+              | DLam { val :: DeBrujin }
               deriving (Data, Show, Eq)
-makeLenses ''DeBrujin
 
 allNums :: Simple Traversal DeBrujin Int
 allNums f (DVar num) = DVar <$> f num
