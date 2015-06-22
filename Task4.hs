@@ -9,29 +9,40 @@ import Data.Data.Lens
 import Data.List
 import Data.Maybe
 
-import LambdaExpression
+--import Debug.Trace{-trace ("!!!" ++ show n ++ ' ':show m) $ -}
+
+import LambdaExpression hiding (subst)
 
 data DeBrujin = DVar { num :: Int }
               | DApp { fst :: DeBrujin, snd :: DeBrujin }
               | DLam { val :: DeBrujin }
-              deriving (Data, Show, Eq)
+              deriving (Typeable, Data, Eq)
 
-allNums :: Simple Traversal DeBrujin Int
-allNums f (DVar num) = DVar <$> f num
-allNums f (DApp fi se) = DApp <$> allNums f fi <*> allNums f se
-allNums f (DLam v) = DLam <$> allNums f v
+instance Show DeBrujin where
+    show (DVar num) = show num
+    show (DApp f s) = '(':show f ++ ' ':show s ++ ")"
+    show (DLam par) = '\\':show par
+
+dFreeVars :: Simple Traversal DeBrujin Int
+dFreeVars = apply 0
+    where
+        apply n f (DVar num)
+            | num > n = DVar <$> f num
+            | otherwise = pure $ DVar num
+        apply n f (DApp fi se) = DApp <$> apply n f fi <*> apply n f se
+        apply n f (DLam v) = DLam <$> apply (n + 1) f v
+
+subst n (DVar m) sub = if m == n then sub & dFreeVars +~ n else DVar m
+subst n (DApp f s) sub = subst n f sub `DApp` subst n s sub
+subst n (DLam v) sub = DLam $ subst (n + 1) v sub
 
 dbReduce :: DeBrujin -> DeBrujin
-dbReduce (DApp (DLam pat) sub) = dbReduce $ subst 1 pat sub
-    where
-        subst n (DVar m) sub
-            | m == n = sub & allNums +~ (n - 1)
-            | otherwise = DVar m
-        subst n (DApp f s) sub = subst n f sub `DApp` subst n s sub
-        subst n (DLam v) sub = DLam $ subst (n + 1) v sub
+dbReduce (DApp (DLam pat) sub) = subst 1 pat sub & dFreeVars -~ 1 & dbReduce
+dbReduce expr@(DApp f s) = let first = dbReduce f
+                           in if f == first then DApp first $ dbReduce s
+                                            else dbReduce $ DApp first s
 dbReduce (DVar n) = DVar n
-dbReduce expr = let down = over uniplate dbReduce expr
-                in if down == expr then down else dbReduce down
+dbReduce (DLam v) = DLam $ dbReduce v
 
 chBr :: LambdaExpr -> DeBrujin
 chBr expr = convert (expr ^.. coerced freeVars.name) expr
