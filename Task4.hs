@@ -5,8 +5,6 @@ import Control.Lens
 import Control.Monad
 
 import Data.Char
-import Data.Data
-import Data.Data.Lens
 import Data.List
 import Data.Maybe
 
@@ -15,7 +13,7 @@ import LambdaExpression
 data DeBrujin = DVar { num :: Int }
               | DApp { fst :: DeBrujin, snd :: DeBrujin }
               | DLam { val :: DeBrujin }
-              deriving (Typeable, Data, Eq)
+              deriving Eq
 
 instance Show DeBrujin where
     show (DVar num) = show num
