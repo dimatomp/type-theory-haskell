@@ -10,7 +10,7 @@ import Data.Data.Lens
 import Data.List
 import Data.Maybe
 
-import LambdaExpression hiding (subst)
+import LambdaExpression
 
 data DeBrujin = DVar { num :: Int }
               | DApp { fst :: DeBrujin, snd :: DeBrujin }
