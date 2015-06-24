@@ -29,7 +29,7 @@ vars f pri              = f pri
 
 instance Show Term where
     showsPrec _ (Pri name) = showString name
-    showsPrec n (Fun "->" [l, r]) = showParen (n > 0) $ showsPrec 1 l . showString "->" . showsPrec 0 l
+    showsPrec n (Fun "->" [l, r]) = showParen (n > 0) $ showsPrec 1 l . showString "->" . showsPrec 0 r
     showsPrec _ (Fun name list) = showString name . showChar '(' . foldr (\a b -> shows a . showChar ',' . b) (shows $ last list) (init list) . showChar ')'
 
 instance Hashable Term where

@@ -19,7 +19,7 @@ cabal-version:       >=1.10
 executable Task1
   main-is:             Task1.hs
   -- other-modules:       
-  other-extensions:    TemplateHaskell, DeriveDataTypeable
+  other-extensions:    TemplateHaskell
   build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
   -- hs-source-dirs:      
   ghc-options: -O2
@@ -29,7 +29,7 @@ executable Task1
 executable Task2
   main-is:             Task2.hs
   -- other-modules:       
-  other-extensions:    TemplateHaskell, DeriveDataTypeable
+  other-extensions:    TemplateHaskell
   build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
   -- hs-source-dirs:      
   ghc-options: -O2
@@ -38,7 +38,7 @@ executable Task2
 executable Task3
   main-is:             Task3.hs
   -- other-modules:       
-  other-extensions:    TemplateHaskell, DeriveDataTypeable
+  other-extensions:    TemplateHaskell
   build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
   -- hs-source-dirs:      
   ghc-options: -O2
@@ -47,7 +47,7 @@ executable Task3
 executable Task4
   main-is:             Task4.hs
   -- other-modules:       
-  other-extensions:    TemplateHaskell, DeriveDataTypeable
+  other-extensions:    TemplateHaskell
   build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
   -- hs-source-dirs:      
   ghc-options: -O2
@@ -56,7 +56,16 @@ executable Task4
 executable Task5
   main-is:             Task5.hs
   -- other-modules:       
-  other-extensions:    TemplateHaskell, DeriveDataTypeable
+  other-extensions:    TemplateHaskell
+  build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
+  -- hs-source-dirs:      
+  ghc-options: -O2
+  default-language:    Haskell2010
+
+executable Task6
+  main-is:             Task6.hs
+  -- other-modules:       
+  other-extensions:    TemplateHaskell
   build-depends:       base >=4.8 && <4.9, lens >=4.11 && <4.12, mtl >=2.2 && <2.3, hashable >=1.2 && <1.3, transformers >=0.4 && <0.5, unordered-containers >=0.2 && <0.3, containers >=0.5 && <0.6
   -- hs-source-dirs:      
   ghc-options: -O2
